@@ -158,6 +158,7 @@ struct ContentView: View {
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? expandAnimation : collapseAnimation, value: vm.notchState)
+                            .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.content, value: vm.notchSize)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -401,6 +402,7 @@ struct ContentView: View {
                     )
                     .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.content)
                 )
+                .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.content, value: coordinator.currentView)
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)

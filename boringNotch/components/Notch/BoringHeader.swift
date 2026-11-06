@@ -37,7 +37,7 @@ struct BoringHeader: View {
                     }
             }
 
-            HStack(spacing: 4) {
+            HStack(spacing: vm.usesFocusedMusicSize ? 2 : 4) {
                 if vm.notchState == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
@@ -52,7 +52,7 @@ struct BoringHeader: View {
                             }) {
                                 Capsule()
                                     .fill(.black)
-                                    .frame(width: 30, height: 30)
+                                    .frame(width: vm.usesFocusedMusicSize ? 26 : 30, height: vm.usesFocusedMusicSize ? 26 : 30)
                                     .overlay {
                                         Image(systemName: "web.camera")
                                             .foregroundColor(.white)
@@ -62,7 +62,11 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.settingsIconInNotch] {
+                        // Keep the compact island's right side within the space
+                        // beside the physical notch. Settings remain in the menu
+                        // bar and the notch context menu when the camera is shown.
+                        if Defaults[.settingsIconInNotch]
+                            && (!vm.usesFocusedMusicSize || !Defaults[.showMirror]) {
                             Button(action: {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
@@ -71,7 +75,7 @@ struct BoringHeader: View {
                             }) {
                                 Capsule()
                                     .fill(.black)
-                                    .frame(width: 30, height: 30)
+                                    .frame(width: vm.usesFocusedMusicSize ? 26 : 30, height: vm.usesFocusedMusicSize ? 26 : 30)
                                     .overlay {
                                         Image(systemName: "gear")
                                             .foregroundColor(.white)
@@ -83,7 +87,7 @@ struct BoringHeader: View {
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
-                                batteryWidth: 30,
+                                batteryWidth: vm.usesFocusedMusicSize ? 24 : 30,
                                 isCharging: batteryModel.isCharging,
                                 isInLowPowerMode: batteryModel.isInLowPowerMode,
                                 isPluggedIn: batteryModel.isPluggedIn,

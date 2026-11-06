@@ -1,6 +1,6 @@
 # Lunotch: local launch and interaction checks
 
-This is a personal macOS fork of Boring Notch. Development runs use a local Debug build; the published v0.1.0-preview.1 DMG is a separately compiled ad-hoc signed Release build without Apple Developer ID notarization. The compact Alcove-inspired focused music UI was built and relaunched at ~22:45 PHT on November 6, 2026. Process startup passed, while screen-level behavior still needs hands-on verification.
+This is a personal macOS fork of Boring Notch. Development runs use a local Debug build; v0.1.0-preview.2 is an ad-hoc signed Release build without Apple Developer ID notarization. A B2-branded Debug app previously launched with one main process plus its helper and media adapter, but the new focused-layout polish has **not** been observed on-screen. Screen-level behavior still needs hands-on verification.
 
 ## Open the build
 
@@ -23,10 +23,14 @@ It runs in the menu bar/notch rather than as a normal Dock app. Quit the current
 9. Start a track, then expand the notch: compare its **450 × 180-point compact shell** and internal spacing against the supplied Alcove screenshot. Check artwork, title/artist (including very long titles), gently animated four bars, blue inline progress timeline with negative remaining time, and five evenly spaced actions. Look for clipping and excess blank space. Test Favorite/Previous/Play-Pause/Next/Volume, seeking and track changes; confirm bars stop when paused and under Reduce Motion. The last action uses Volume because it is supported by the current media integration, while the reference depicts output routing.
 10. In Settings → Media turn **Use compact music player on Home** off and on; verify the regular calendar layout returns at the normal width when off, and focused mode returns at compact width when on. Pause media and wait beyond the media idle timeout: Home should remain at **450 × 180 points**, showing a placeholder if no player remains available, without reverting to the 640 × 190 legacy player. Switch between music and shelf/calendar/camera while expanded, watching for resizing hitches or stale width, and verify no overlapping controls. The previous 0.1-second hover-opening preference should remain intact.
 
+11. Visually inspect the B2 Lunar Droplet mark in Finder, onboarding and Settings → About. Check the monochrome menu-bar symbol on light and dark surfaces for contrast and clear inner cutouts. The `LunotchMenuIcon` asset is integrated, but `screencapture` failed (`could not create image from display`), so visual QA remains open.
+
+12. Check the **100%** battery label beside the physical notch: it should remain horizontal without wrapping or clipping. Check that the focused 68 × 68-point album art is square and that previous/next controls use clean backward/forward glyphs. Open and close the player rapidly, then switch between shelf, calendar and media to check size-change smoothness. If the old layout returns after restart, check that an old installed app was not selected by the restart helper and that no duplicate Lunotch processes are running.
+
 When rebuilding, close any existing Lunotch process before opening the new app. The November 7 restart found that SIGTERM alone did not end an older main process, leaving two instances and potentially two competing notch overlays. Confirm one `Lunotch.app/Contents/MacOS/Lunotch` process after relaunch. Do not terminate unrelated system `mediaremote` processes.
 
 ## If motion still hitches
 
 Profile the running app from Xcode with **Product → Profile → SwiftUI** in Instruments, then record a rapid open/close and gesture interaction. Inspect **Long View Body Updates**, **Long Platform View Updates**, and **Hitches**. The code still contains expensive blurred album-art layers and live media updates; optimize only after a trace identifies a hot path. Apple's instructions: https://developer.apple.com/documentation/xcode/understanding-and-improving-swiftui-performance and https://developer.apple.com/documentation/xcode/improving-your-app-s-rendering-efficiency.
 
-Record pass/fail results (and specific reproduction steps for failures) in `docs/GOAL.md` before marking the remaining acceptance criteria complete. The latest build log is at `/tmp/lunotch-compact-player-build.log`; that log may be cleared by the operating system.
+Record pass/fail results (and specific reproduction steps for failures) in `docs/GOAL.md` before marking the remaining acceptance criteria complete. The latest branding build log is at `/tmp/lunotch-b2-complete-build.log`; that log may be cleared by the operating system.

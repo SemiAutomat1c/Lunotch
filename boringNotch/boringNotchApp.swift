@@ -18,7 +18,7 @@ struct DynamicNotchApp: App {
     @Environment(\.openWindow) var openWindow
 
     var body: some Scene {
-        MenuBarExtra("Lunotch", systemImage: "moon.stars.fill", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("Lunotch", image: "LunotchMenuIcon", isInserted: $showMenuBarIcon) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()

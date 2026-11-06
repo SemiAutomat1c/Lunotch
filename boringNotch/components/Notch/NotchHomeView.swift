@@ -527,9 +527,21 @@ struct FocusedMusicPlayerView: View {
     private var playerContent: some View {
         VStack(spacing: 6) {
             HStack(spacing: 12) {
-                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
-                    .frame(width: 68, height: 68)
-                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                Button {
+                    musicManager.openMusicApp()
+                } label: {
+                    Image(nsImage: musicManager.albumArt)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 68, height: 68)
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                        .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                                .strokeBorder(.white.opacity(0.09), lineWidth: 0.5)
+                        }
+                }
+                .accessibilityLabel("Open music app")
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(musicManager.songTitle)
@@ -605,7 +617,7 @@ struct FocusedMusicPlayerView: View {
                 musicManager.toggleFavoriteTrack()
             }
         case .previous:
-            focusedButton("backward.end.fill", size: 26, label: "Previous track") {
+            focusedButton("backward.fill", size: 26, label: "Previous track") {
                 musicManager.previousTrack()
             }
         case .playPause:
@@ -614,7 +626,7 @@ struct FocusedMusicPlayerView: View {
                 musicManager.togglePlay()
             }
         case .next:
-            focusedButton("forward.end.fill", size: 26, label: "Next track") {
+            focusedButton("forward.fill", size: 26, label: "Next track") {
                 musicManager.nextTrack()
             }
         case .volume:
@@ -719,8 +731,11 @@ struct MusicSliderView: View {
     }
 
     func timeString(from seconds: Double) -> String {
-        let totalMinutes = Int(seconds) / 60
-        let remainingSeconds = Int(seconds) % 60
+        // Media clients occasionally report unknown duration as NaN or infinity.
+        // Keep the compact timeline stable until valid metadata arrives.
+        let safeSeconds = seconds.isFinite ? max(0, seconds) : 0
+        let totalMinutes = Int(min(safeSeconds, Double(Int.max / 2))) / 60
+        let remainingSeconds = Int(min(safeSeconds, Double(Int.max / 2))) % 60
         let hours = totalMinutes / 60
         let minutes = totalMinutes % 60
 

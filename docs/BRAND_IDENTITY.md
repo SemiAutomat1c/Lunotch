@@ -22,16 +22,18 @@ Name-check URLs: [GitHub API](https://api.github.com/search/repositories?q=lunot
 
 ## Logo system
 
-**B2 Dock icon update (November 7, 2026):** The app icon catalog uses the selected Lunar Droplet dark-tile design, with source `brand/lunotch-b2-dock.svg`. Run `swift brand/render-b2-icon.swift` to regenerate its seven macOS pixel sizes. The existing compact mark, wordmark files and in-app logo assets below remain the earlier identity pending a separate decision. The B2 menu-bar symbol in `brand/explorations/b2-production-review/` has not been integrated.
+**B2 Lunar Droplet update (November 7, 2026):** The app icon, in-app marks, menu-bar icon and wordmarks use the selected B2 Lunar Droplet design. The editable full-color master is `brand/lunotch-b2-dock.svg`; the monochrome menu-bar variant is `brand/lunotch-b2-menubar.svg`. Run `swift brand/render-b2-icon.swift` from the repo root to regenerate the seven macOS app-icon pixel sizes, `logo` and `logo2` rasters, and the 1x/2x menu-bar templates. Xcode's `LunotchMenuIcon` image set is marked `template` so macOS controls its appearance in dark and light menu bars. Visual on-device review of the updated menu item and Finder icon is still needed.
 
-- **Legacy compact mark:** `brand/lunotch-mark.svg`, `brand/lunotch-icon-1024.png`. The earlier moon-like orbit surrounds a floating island and remains in the wordmarks and in-app logo assets.
-- **Horizontal wordmark:** `brand/lunotch-lockup-dark.svg` and `brand/lunotch-lockup-light.svg`, both editable SVG. Lowercase *lunotch* communicates a quiet, friendly utility.
-- **Xcode asset sizes:** `boringNotch/Assets.xcassets/AppIcon.appiconset` includes macOS 16/32/128/256/512 point assets and their @2x variants. `logo` and `logo2` assets reuse the compact symbol for existing in-app references.
+- **Legacy compact mark:** `brand/lunotch-mark.svg`, `brand/lunotch-icon-1024.png` are retained for comparison; active in-app assets use B2.
+- **Horizontal wordmark:** `brand/lunotch-lockup-dark.svg` and `brand/lunotch-lockup-light.svg`, both editable SVG with the B2 mark. Lowercase *lunotch* communicates a quiet, friendly utility.
+- **Xcode asset sizes:** `boringNotch/Assets.xcassets/AppIcon.appiconset` includes macOS 16/32/128/256/512 point assets and their @2x variants. `logo` and `logo2` display the full-color B2 tile. `LunotchMenuIcon` is a monochrome 28×18-point template with @2x raster and clear cutouts.
 - **Reproducibility:** The legacy renderer `brand/render-icons.swift` restores the earlier PNG assets and requires `--restore-legacy`; it will replace the B2 app icon if run. The legacy SVG describes the original geometry; its renderer adds subtle tile shading and a floating-island shadow.
 
 **Clear space:** For the lockup, leave at least half the icon tile's rendered height on every side when space allows. Do not distort, rotate, recolor individual pieces, or place the light lettering over a bright photograph. Use the compact icon at small sizes; use wordmark lockups where legibility permits.
 
 ## Color palette
+
+The **B2 icon** uses exact master colors: Midnight tile `#181C2C`, silver moon `#D5D4DD` and lavender accent `#B494F3`. The existing app UI accent colors below remain separate and were not changed by this branding pass.
 
 | Token | Hex | Use |
 | --- | --- | --- |

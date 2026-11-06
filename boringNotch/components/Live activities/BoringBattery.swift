@@ -192,13 +192,14 @@ struct BoringBatteryView: View {
                 showPopupMenu.toggle()
             }
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 if Defaults[.showBatteryPercentage] {
                     Text("\(Int32(levelBattery))%")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
+                        .layoutPriority(1)
                         .foregroundStyle(.white)
                 }
                 BatteryView(
@@ -210,6 +211,7 @@ struct BoringBatteryView: View {
                     isForNotification: isForNotification
                 )
             }
+            .fixedSize(horizontal: true, vertical: false)
         }
         .buttonStyle(ScaleButtonStyle())
         .popover(
