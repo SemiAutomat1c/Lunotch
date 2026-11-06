@@ -15,12 +15,12 @@ struct HUDsTip: Tip {
     
     
     var message: Text? {
-        Text("Unlock advanced features and improve your experience. Upgrade now for more customizations!")
+        Text("Customize volume and brightness indicators from Settings to make the notch your own.")
     }
     
     
     var image: Image? {
-        AppIcon(for: "theboringteam.boringNotch")
+        AppIcon(for: Bundle.main.bundleIdentifier ?? "dev.ryandeniega.lunotch")
     }
     
     var actions: [Action] {
@@ -37,12 +37,12 @@ struct CBTip: Tip {
     
     
     var message: Text? {
-        Text("Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!")
+        Text("Keep frequently used content close by, with quick access from the notch.")
     }
     
     
     var image: Image? {
-        AppIcon(for: "theboringteam.boringNotch")
+        AppIcon(for: Bundle.main.bundleIdentifier ?? "dev.ryandeniega.lunotch")
     }
     
     var actions: [Action] {

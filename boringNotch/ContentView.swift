@@ -16,6 +16,7 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var webcamManager = WebcamManager.shared
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -34,14 +35,35 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
+    @Default(.focusedMusicPlayer) private var focusedMusicPlayer
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
-    // Shared interactive spring for movement/resizing to avoid conflicting animations
-    private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    private var animationSpring: Animation {
+        reduceMotion ? NotchMotion.reducedMotion : NotchMotion.gesture
+    }
+
+    private var expandAnimation: Animation {
+        reduceMotion ? NotchMotion.reducedMotion : NotchMotion.expand
+    }
+
+    private var collapseAnimation: Animation {
+        reduceMotion ? NotchMotion.reducedMotion : NotchMotion.collapse
+    }
+
+    private var hoverAnimation: Animation {
+        reduceMotion ? NotchMotion.reducedMotion : NotchMotion.hover
+    }
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+
+    private var focusedMusicSizingIsActive: Bool {
+        focusedMusicPlayer
+            && coordinator.currentView == .home
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && !(Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded)
+    }
 
     private var topCornerRadius: CGFloat {
        ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
@@ -81,17 +103,26 @@ struct ContentView: View {
     }
 
     var body: some View {
-        // Calculate scale based on gesture progress only
+        // Keep the shell anchored to the camera while the pointer/trackpad
+        // leads the gesture. Large whole-surface scaling feels detached.
         let gestureScale: CGFloat = {
+            guard !reduceMotion else { return 1.0 }
             guard gestureProgress != 0 else { return 1.0 }
-            let scaleFactor = 1.0 + gestureProgress * 0.01
-            return max(0.6, scaleFactor)
+            return 1.0 + min(max(gestureProgress * 0.00125, -0.025), 0.025)
         }()
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
-                    .frame(alignment: .top)
+                    .frame(
+                        width: vm.notchState == .open && vm.usesFocusedMusicSize
+                            ? max(0, focusedMusicNotchSize.width - 2 * (
+                                (Defaults[.cornerRadiusScaling]
+                                    ? cornerRadiusInsets.opened.top : cornerRadiusInsets.opened.bottom) + 12
+                            ))
+                            : nil,
+                        alignment: .top
+                    )
                     .padding(
                         .horizontal,
                         vm.notchState == .open
@@ -102,6 +133,10 @@ struct ContentView: View {
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
+                    .overlay {
+                        currentNotchShape
+                            .stroke(.white.opacity(vm.notchState == .open ? 0.11 : 0), lineWidth: 0.6)
+                    }
                     .overlay(alignment: .top) {
                         Rectangle()
                             .fill(.black)
@@ -110,7 +145,9 @@ struct ContentView: View {
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
-                            ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
+                            ? .black.opacity(0.65) : .clear,
+                        radius: vm.notchState == .open ? 12 : 5,
+                        y: vm.notchState == .open ? 6 : 2
                     )
                     .padding(
                         .bottom,
@@ -120,12 +157,8 @@ struct ContentView: View {
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
-                        let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
-                        let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
-                        
                         return view
-                            .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
+                            .animation(vm.notchState == .open ? expandAnimation : collapseAnimation, value: vm.notchState)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -162,7 +195,7 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.notchState) { _, newState in
                         if newState == .closed && isHovering {
-                            withAnimation {
+                            withAnimation(hoverAnimation) {
                                 isHovering = false
                             }
                         }
@@ -210,10 +243,15 @@ struct ContentView: View {
             y: gestureScale,
             anchor: .top
         )
-        .animation(.smooth, value: gestureProgress)
+        // Progress follows the gesture without an implicit spring on each
+        // event. Only the release/commit animates back to rest.
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onDisappear {
+            hoverTask?.cancel()
+            anyDropDebounceTask?.cancel()
+        }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -239,6 +277,9 @@ struct ContentView: View {
                     vm.close()
                 }
             }
+        }
+        .onChange(of: focusedMusicSizingIsActive) { _, _ in
+            vm.refreshOpenNotchSize()
         }
     }
 
@@ -286,7 +327,10 @@ struct ContentView: View {
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
-                              .transition(.opacity)
+                              .transition(.asymmetric(
+                                  insertion: .opacity.combined(with: .offset(y: reduceMotion ? 0 : -4)),
+                                  removal: .opacity
+                              ))
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -352,9 +396,11 @@ struct ContentView: View {
                     }
                 }
                 .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    .asymmetric(
+                        insertion: .offset(y: reduceMotion ? 0 : -12).combined(with: .opacity),
+                        removal: .scale(scale: reduceMotion ? 1 : 0.96, anchor: .top).combined(with: .opacity)
+                    )
+                    .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.content)
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
@@ -503,8 +549,23 @@ struct ContentView: View {
     }
 
     private func doOpen() {
-        withAnimation(animationSpring) {
+        hoverTask?.cancel()
+        withAnimation(expandAnimation) {
             vm.open()
+        }
+    }
+
+    private func trackGesture(_ progress: CGFloat) {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            gestureProgress = min(max(progress, -20), 20)
+        }
+    }
+
+    private func settleGesture() {
+        withAnimation(animationSpring) {
+            gestureProgress = .zero
         }
     }
 
@@ -515,7 +576,7 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
-            withAnimation(animationSpring) {
+            withAnimation(hoverAnimation) {
                 isHovering = true
             }
             
@@ -545,11 +606,11 @@ struct ContentView: View {
                 guard !Task.isCancelled else { return }
                 
                 await MainActor.run {
-                    withAnimation(animationSpring) {
+                    withAnimation(hoverAnimation) {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !self.vm.anyDropZoneTargeting && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -563,21 +624,17 @@ struct ContentView: View {
         guard vm.notchState == .closed else { return }
 
         if phase == .ended {
-            withAnimation(animationSpring) { gestureProgress = .zero }
+            settleGesture()
             return
         }
 
-        withAnimation(animationSpring) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
-        }
+        trackGesture((translation / Defaults[.gestureSensitivity]) * 20)
 
-        if translation > Defaults[.gestureSensitivity] {
+        if translation >= Defaults[.gestureSensitivity] {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-            withAnimation(animationSpring) {
-                gestureProgress = .zero
-            }
+            settleGesture()
             doOpen()
         }
     }
@@ -585,21 +642,21 @@ struct ContentView: View {
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
 
-        withAnimation(animationSpring) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
-        }
-
         if phase == .ended {
-            withAnimation(animationSpring) {
-                gestureProgress = .zero
-            }
+            settleGesture()
+            return
         }
 
-        if translation > Defaults[.gestureSensitivity] {
-            withAnimation(animationSpring) {
-                isHovering = false
+        trackGesture((translation / Defaults[.gestureSensitivity]) * -20)
+
+        if translation >= Defaults[.gestureSensitivity] {
+            guard !SharingStateManager.shared.preventNotchClose else {
+                settleGesture()
+                return
             }
-            if !SharingStateManager.shared.preventNotchClose { 
+            hoverTask?.cancel()
+            withAnimation(collapseAnimation) {
+                isHovering = false
                 gestureProgress = .zero
                 vm.close()
             }

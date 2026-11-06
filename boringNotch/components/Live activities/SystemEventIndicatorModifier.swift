@@ -97,6 +97,7 @@ struct SystemEventIndicatorModifier: View {
 
 struct DraggableProgressBar: View {
     @EnvironmentObject var vm: BoringViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var value: CGFloat
     var onChange: ((CGFloat) -> Void)? = nil
     
@@ -133,23 +134,23 @@ struct DraggableProgressBar: View {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { gesture in
-                            withAnimation(.smooth(duration: 0.3)) {
-                                isDragging = true
-                                updateValue(gesture: gesture, in: geo)
-                            }
+                            isDragging = true
+                            // Follow the pointer immediately; animating the value makes
+                            // media controls feel delayed while the thumb is moving.
+                            updateValue(gesture: gesture, in: geo)
                         }
                         .onEnded { _ in
-                            withAnimation(.smooth(duration: 0.3)) {
-                                isDragging = false
-                            }
+                            isDragging = false
                         }
                 )
             }
             .frame(height: Defaults[.inlineHUD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
+            .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.hover, value: isDragging)
         }
     }
     
     private func updateValue(gesture: DragGesture.Value, in geometry: GeometryProxy) {
+        guard geometry.size.width > 0 else { return }
         let dragPosition = gesture.location.x
         let newValue = dragPosition / geometry.size.width
         

@@ -329,6 +329,7 @@ private extension Array where Element == MusicControlButton {
 
 struct VolumeControlView: View {
     @ObservedObject var musicManager = MusicManager.shared
+    var prominent: Bool = false
     @State private var volumeSliderValue: Double = 0.5
     @State private var dragging: Bool = false
     @State private var showVolumeSlider: Bool = false
@@ -345,12 +346,14 @@ struct VolumeControlView: View {
                 }
             }) {
                 Image(systemName: volumeIcon)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: prominent ? 22 : 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
             .buttonStyle(PlainButtonStyle())
             .disabled(!musicManager.volumeControlSupported)
-            .frame(width: 24)
+            .frame(width: prominent ? 38 : 24, height: prominent ? 38 : 24)
+            .help("Volume")
+            .accessibilityLabel("Volume")
 
             if showVolumeSlider && musicManager.volumeControlSupported {
                 CustomSlider(
@@ -420,6 +423,9 @@ struct VolumeControlView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Default(.focusedMusicPlayer) private var focusedMusicPlayer
+    @ObservedObject private var musicManager = MusicManager.shared
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -439,30 +445,191 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    private var showingFocusedMusicPlayer: Bool {
+        focusedMusicPlayer
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && !shouldShowCamera
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+        Group {
+            if showingFocusedMusicPlayer {
+                FocusedMusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    .frame(maxWidth: .infinity)
+            } else {
+                HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+                    MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
+                    if Defaults[.showCalendar] {
+                        CalendarView()
+                            .frame(width: shouldShowCamera ? 170 : 215)
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                            .transition(.opacity)
                     }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
 
-            if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                    if shouldShowCamera {
+                        CameraPreviewView(webcamManager: webcamManager)
+                            .scaledToFit()
+                            .opacity(vm.notchState == .closed ? 0 : 1)
+                            .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 12 : 0)
+                            .animation(reduceMotion ? NotchMotion.reducedMotion : NotchMotion.content, value: shouldShowCamera)
+                    }
+                }
             }
         }
-        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
-        .blur(radius: vm.notchState == .closed ? 30 : 0)
+        .transition(.asymmetric(
+            insertion: .opacity.combined(with: .offset(y: reduceMotion ? 0 : -6)),
+            removal: .opacity
+        ))
+        .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 14 : 0)
+    }
+}
+
+/// A music-first layout inspired by the reference: a single artwork/title row,
+/// full-width elapsed timeline, and five spacious transport controls.
+/// Existing music actions, settings, and the compact calendar layout remain available.
+struct FocusedMusicPlayerView: View {
+    @EnvironmentObject private var vm: BoringViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ObservedObject private var musicManager = MusicManager.shared
+    @State private var sliderValue: Double = 0
+    @State private var dragging = false
+    @State private var lastDragged: Date = .distantPast
+    @Default(.musicControlSlots) private var slotConfig
+    @Default(.musicControlSlotLimit) private var slotLimit
+    let albumArtNamespace: Namespace.ID
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 12) {
+                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+                    .frame(width: 68, height: 68)
+                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(musicManager.songTitle)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(musicManager.artistName)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                TimelineView(.animation(minimumInterval: 1.0 / 20.0,
+                                         paused: reduceMotion || !musicManager.isPlaying)) { timeline in
+                    HStack(alignment: .center, spacing: 3) {
+                        ForEach(0..<4, id: \.self) { index in
+                            let phase = timeline.date.timeIntervalSinceReferenceDate
+                            let animatedHeight = 8 + 17 * abs(sin(phase * (2.6 + Double(index) * 0.35) + Double(index) * 1.4))
+                            Capsule()
+                                .fill(.white.opacity(musicManager.isPlaying ? 0.75 : 0.3))
+                                .frame(width: 3, height: musicManager.isPlaying && !reduceMotion
+                                       ? animatedHeight : [11.0, 19.0, 25.0, 14.0][index])
+                        }
+                    }
+                }
+                .frame(width: 24, height: 30)
+                .accessibilityLabel(musicManager.isPlaying ? "Playing" : "Paused")
+            }
+
+            TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+                MusicSliderView(
+                    sliderValue: $sliderValue,
+                    duration: $musicManager.songDuration,
+                    lastDragged: $lastDragged,
+                    color: musicManager.avgColor,
+                    dragging: $dragging,
+                    currentDate: timeline.date,
+                    timestampDate: musicManager.timestampDate,
+                    elapsedTime: musicManager.elapsedTime,
+                    playbackRate: musicManager.playbackRate,
+                    isPlaying: musicManager.isPlaying,
+                    onValueChange: { MusicManager.shared.seek(to: $0) },
+                    inlineTimeLabels: true
+                )
+            }
+            .frame(height: 20)
+
+            HStack(spacing: 0) {
+                ForEach(Array(activeSlots.enumerated()), id: \.offset) { _, slot in
+                    focusedSlot(for: slot)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 36)
+        }
+        .padding(.horizontal, 8)
+        .buttonStyle(.plain)
+    }
+
+    private var activeSlots: [MusicControlButton] {
+        let count = min(max(slotLimit, MusicControlButton.minSlotCount), MusicControlButton.maxSlotCount)
+        return Array(slotConfig.padded(to: count, filler: .none).prefix(count))
+    }
+
+    @ViewBuilder
+    private func focusedSlot(for slot: MusicControlButton) -> some View {
+        switch slot {
+        case .favorite:
+            focusedButton(musicManager.isFavoriteTrack ? "star.fill" : "star", size: 22,
+                          enabled: musicManager.canFavoriteTrack, label: "Favorite") {
+                musicManager.toggleFavoriteTrack()
+            }
+        case .previous:
+            focusedButton("backward.end.fill", size: 26, label: "Previous track") {
+                musicManager.previousTrack()
+            }
+        case .playPause:
+            focusedButton(musicManager.isPlaying ? "pause.fill" : "play.fill", size: 29,
+                          label: musicManager.isPlaying ? "Pause" : "Play") {
+                musicManager.togglePlay()
+            }
+        case .next:
+            focusedButton("forward.end.fill", size: 26, label: "Next track") {
+                musicManager.nextTrack()
+            }
+        case .volume:
+            VolumeControlView(prominent: true)
+        case .shuffle:
+            focusedButton("shuffle", size: 22, label: "Shuffle") { musicManager.toggleShuffle() }
+        case .repeatMode:
+            focusedButton(musicManager.repeatMode == .one ? "repeat.1" : "repeat", size: 22,
+                          label: "Repeat") { musicManager.toggleRepeat() }
+        case .goBackward:
+            focusedButton("gobackward.15", size: 24, label: "Back 15 seconds") {
+                musicManager.skip(seconds: -15)
+            }
+        case .goForward:
+            focusedButton("goforward.15", size: 24, label: "Forward 15 seconds") {
+                musicManager.skip(seconds: 15)
+            }
+        case .none:
+            Color.clear.frame(height: 36)
+        }
+    }
+
+    private func focusedButton(_ symbol: String, size: CGFloat, enabled: Bool = true,
+                               label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(.white.opacity(enabled ? 1 : 0.35))
+                .frame(maxWidth: .infinity, minHeight: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
@@ -478,14 +645,50 @@ struct MusicSliderView: View {
     let playbackRate: Double
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
+    var inlineTimeLabels = false
 
 
     var body: some View {
-        VStack {
-            CustomSlider(
+        Group {
+            if inlineTimeLabels {
+                HStack(spacing: 11) {
+                    Text(timeString(from: sliderValue))
+                        .frame(width: 36, alignment: .leading)
+                    sliderTrack
+                    Text("-" + timeString(from: max(0, duration - sliderValue)))
+                        .frame(width: 44, alignment: .trailing)
+                }
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.55))
+            } else {
+                VStack {
+                    sliderTrack
+                    HStack {
+                        Text(timeString(from: sliderValue))
+                        Spacer()
+                        Text(timeString(from: duration))
+                    }
+                    .fontWeight(.medium)
+                    .foregroundColor(
+                        Defaults[.playerColorTinting]
+                            ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
+                    )
+                    .font(.caption)
+                }
+            }
+        }
+        .onChange(of: currentDate) {
+           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
+        }
+    }
+
+    private var sliderTrack: some View {
+        CustomSlider(
                 value: $sliderValue,
                 range: 0...duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
+                color: inlineTimeLabels ? Color(red: 0.48, green: 0.65, blue: 0.73) : Defaults[.sliderColor] == SliderColorEnum.albumArt
                     ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
                     : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
                 dragging: $dragging,
@@ -493,23 +696,6 @@ struct MusicSliderView: View {
                 onValueChange: onValueChange
             )
             .frame(height: 10, alignment: .center)
-
-            HStack {
-                Text(timeString(from: sliderValue))
-                Spacer()
-                Text(timeString(from: duration))
-            }
-            .fontWeight(.medium)
-            .foregroundColor(
-                Defaults[.playerColorTinting]
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
-            )
-            .font(.caption)
-        }
-        .onChange(of: currentDate) {
-           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
-        }
     }
 
     func timeString(from seconds: Double) -> String {
@@ -559,9 +745,10 @@ struct CustomSlider: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
-                        withAnimation {
-                            dragging = true
-                        }
+                        guard width > 0 else { return }
+                        // Track audio scrubbing immediately; the visual track
+                        // height has its own state-driven animation below.
+                        dragging = true
                         let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                         onDragChange?(value)
@@ -572,7 +759,7 @@ struct CustomSlider: View {
                         lastDragged = Date()
                     }
             )
-            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: dragging)
+            .animation(.easeOut(duration: 0.16), value: dragging)
         }
     }
 }

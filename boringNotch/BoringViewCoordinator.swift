@@ -177,8 +177,8 @@ class BoringViewCoordinator: ObservableObject {
     
     @objc func sneakPeekEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
+        if let data = notification.userInfo?.values.compactMap({ $0 as? Data }).first,
+           let decodedData = try? decoder.decode(SharedSneakPeek.self, from: data)
         {
             let contentType =
                 decodedData.type == "brightness"
@@ -217,7 +217,7 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
         Task { @MainActor in
-            withAnimation(.smooth) {
+            withAnimation(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? NotchMotion.reducedMotion : NotchMotion.hud) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type
                 self.sneakPeek.value = value
@@ -241,10 +241,8 @@ class BoringViewCoordinator: ObservableObject {
             try? await Task.sleep(for: .seconds(duration))
             guard let self = self, !Task.isCancelled else { return }
             await MainActor.run {
-                withAnimation {
-                    self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = 1.5
-                }
+                self.toggleSneakPeek(status: false, type: .music)
+                self.sneakPeekDuration = 1.5
             }
         }
     }
@@ -266,7 +264,7 @@ class BoringViewCoordinator: ObservableObject {
         browser: BrowserType = .chromium
     ) {
         Task { @MainActor in
-            withAnimation(.smooth) {
+            withAnimation(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? NotchMotion.reducedMotion : NotchMotion.hud) {
                 self.expandingView.show = status
                 self.expandingView.type = type
                 self.expandingView.value = value

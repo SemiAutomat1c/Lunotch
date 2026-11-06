@@ -1,199 +1,85 @@
-<h1 align="center">
-  <br>
-  <a href="http://theboring.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
-  <br>
-  Boring Notch
-  <br>
-</h1>
+<div align="center">
+  <img src="brand/lunotch-icon-1024.png" alt="Lunotch crescent and floating island icon" width="120" />
+  <h1>Lunotch</h1>
+  <p><strong>Your Mac, a little more alive.</strong></p>
+  <p>A small, animated notch companion for macOS, built with SwiftUI.</p>
+  <p><a href="https://github.com/SemiAutomat1c/Lunotch/releases/tag/v0.1.0-preview.1"><strong>Download the macOS preview (DMG)</strong></a> · <a href="docs/LOCAL_TESTING.md">Testing guide</a> · <a href="#roadmap">Roadmap</a></p>
+</div>
 
+> **Preview / personal project.** Lunotch is an experimental derivative of [Boring Notch](https://github.com/TheBoredTeam/boring.notch), shared under **GPL-3.0**. Its music-first layout and motion direction are inspired by public demonstrations of [Alcove](https://tryalcove.com/). Lunotch has its own branding and implementation changes and is **not affiliated with or endorsed by** the Boring Notch team or Alcove.
 
-<p align="center">
-  <a title="Crowdin" target="_blank" href="https://crowdin.com/project/boring-notch"><img src="https://badges.crowdin.net/boring-notch/localized.svg"></a>
-  <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
-  <a href="https://discord.gg/c8JXA7qrPm">
-    <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
-  </a>
-  <a href="https://www.ko-fi.com/alexander5015">
-    <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
-  </a>
-</p>
+## What it does
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/14815?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-14815" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/14815" alt="TheBoredTeam%2Fboring.notch |    Trendshift" width="250" height="55"/></a>
-</p>
-<!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
+Lunotch turns the top of your Mac screen into a lightweight space for music and quick interactions. This first preview focuses on how the notch opens, moves and responds.
 
-Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS HUD replacement and more!
+- **Music-first expanded view:** album art, track and artist, playing indicator, elapsed and remaining times, draggable seek bar, and five configurable media actions. The current default last action controls volume; audio-output selection is planned.
+- **Compact panel:** a focused music shell set to **450 × 180 points**, with a larger layout available for other content.
+- **Responsive motion:** interruptible spring-based open/close transitions, pointer-tracking during drags, configurable hover delay, and a reduced-motion path.
+- **Boring Notch features retained in source:** media controls, file shelf and AirDrop integration, calendar and reminders views, camera mirror, battery and charging indicators, and system HUDs. These inherited flows still need broader regression testing in Lunotch.
+- **Original identity:** Lunotch app icon, wordmarks, accent colors and About information.
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
-</p>
+The focused player is inspired by Alcove's layout; it is **not** a pixel-perfect replica. Screenshots and live animations will be added after visual QA.
 
-<!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
----
-<!--## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [Roadmap](#-roadmap)
-- [Building from Source](#building-from-source)
-- [Contributing](#-contributing)
-- [Join our Discord Server](#join-our-discord-server)
-- [Star History](#star-history)
-- [Buy us a coffee!](#buy-us-a-coffee)
-- [Acknowledgments](#-acknowledgments)-->
+## Install
 
-## Installation
+**Download:** [Lunotch v0.1.0-preview.1 — GitHub Release](https://github.com/SemiAutomat1c/Lunotch/releases/tag/v0.1.0-preview.1). Choose `Lunotch-v0.1.0-preview.1-arm64.dmg` under **Assets**.
 
-**System Requirements:**
-- macOS **14 Sonoma** or later
-- Apple Silicon or Intel Mac
+1. Open the DMG and drag **Lunotch.app** to **Applications**.
+2. Quit any already-running copy of Lunotch or Boring Notch to avoid overlapping notch overlays.
+3. Open Lunotch from Applications. It works primarily from the notch/menu bar, so it may not appear in the Dock.
+4. Because this preview is **ad-hoc signed and not Apple notarized**, macOS may block the first launch. Try opening the app once, then use **System Settings → Privacy & Security → Open Anyway** if offered. Only override this warning if you trust the download and have checked its release details. You can also build directly from source.
+5. Grant only the macOS permissions you need for optional features, such as camera, calendar/reminders, or media control.
 
----
+**Compatibility:** This DMG is built for **Apple Silicon (arm64)**. It was compiled on macOS 26 with Xcode 26. The Xcode project currently targets macOS 14, but a bundled media adapter targets macOS 15; macOS 15 or newer is the practical starting point. Compatibility across macOS versions, external monitors, and Intel Macs has **not** been verified. No auto-updater is included.
 
-### Option 1: Download and Install Manually
+A SHA-256 checksum is provided in the [release notes](https://github.com/SemiAutomat1c/Lunotch/releases/tag/v0.1.0-preview.1) for checking downloaded DMGs.
 
-<a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+## Build from source
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
-
-> [!IMPORTANT]
-> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
->
-> You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
-
----
-
-#### Recommended: Terminal (Always Works)
-
-This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
-
-After moving Boring Notch to your Applications folder, run:
+Requires macOS, Xcode, and Swift Package Manager dependency access.
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Boring Notch.app"
+git clone https://github.com/SemiAutomat1c/Lunotch.git
+cd Lunotch
+open boringNotch.xcodeproj
 ```
 
-Then open the app normally.
-
----
-
-#### Alternative: System Settings
-
-> [!NOTE]
-> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
-
-1. Try to open the app — you'll see a security warning.
-2. Click **OK** to dismiss it.
-3. Open **System Settings** > **Privacy & Security**.
-4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
-5. Confirm if prompted.
-
----
-
-### Option 2: Install via Homebrew
-
-You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
+Choose scheme **boringNotch** and build in Xcode. The project and several internal source names still reflect its Boring Notch origins. To build from Terminal without an Apple Developer certificate:
 
 ```bash
-brew install --cask TheBoredTeam/boring-notch/boring-notch
+xcodebuild -project boringNotch.xcodeproj \
+  -scheme boringNotch -configuration Debug \
+  -destination 'platform=macOS,arch=arm64' \
+  CODE_SIGNING_ALLOWED=NO build
 ```
 
-## Usage
+For a local Release build, Xcode can ad-hoc sign with `CODE_SIGN_IDENTITY=-`. The [DMG packaging script](scripts/package-dmg.sh) packages an already-built `Lunotch.app` into a drag-to-Applications installer; [release instructions](docs/RELEASING.md) describe the process. Packaging does **not** notarize the app.
 
-- Launch the app, and voilà—your notch is now the coolest part of your screen.
-- Hover over the notch to see it expand and reveal all its secrets.
-- Use the controls to manage your music like a rockstar.
-- Click the star in your menu bar to customize your notch to your heart's content.
+## Current status and known limits
 
-## 📋 Roadmap
-- [x] Playback live activity 🎧
-- [x] Calendar integration 📆
-- [x] Reminders integration ☑️
-- [x] Mirror 📷
-- [x] Charging indicator and current percentage 🔋
-- [x] Customizable gesture control 👆🏻
-- [x] Shelf functionality with AirDrop 📚
-- [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
-- [ ] Weather integration ⛅️
-- [ ] Customizable Layout options 🛠️
-- [ ] Lock Screen Widgets 🔒
-- [ ] Extension system 🧩
-- [ ] Notifications (under consideration) 🔔
-<!-- - [ ] Clipboard history manager 📌 `Extension` -->
-<!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
-<!-- - [ ] Customizable function buttons 🎛️ -->
-<!-- - [ ] App switcher 🪄 -->
+This is a **preview**, not a stable or audited release. Compilation and signing verification have passed on the development machine. The app has launched with its embedded helper, but the new layout's physical dimensions, animations, shelf, media actions, camera, external monitors, permissions, macOS compatibility and accessibility behavior have **not** all been verified through hands-on testing. See the [local QA checklist](docs/LOCAL_TESTING.md) and [development log](docs/GOAL.md). Upstream Swift concurrency warnings and a macOS minimum-version mismatch in the bundled media adapter also remain.
 
-<!-- ## 🧩 Extensions
-> [!NOTE]
-> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->
+## Roadmap
 
-## Building from Source
+- [x] Lunotch naming, logo, app icon, and About attribution
+- [x] Compact music-first view with configurable controls
+- [x] Hover/drag motion refinements and reduced-motion code path
+- [x] First Apple Silicon DMG preview
+- [ ] Manual QA on hover, scrubbing, music/HUD, shelf, camera and calendar
+- [ ] Finish focused-player typography and responsive sizing against real display captures
+- [ ] Add an actual output-device/AirPlay picker instead of the volume shortcut
+- [ ] Test notchless Macs, external displays, sleep/wake and multiple macOS versions
+- [ ] Accessibility and performance profiling of animations
+- [ ] Resolve Swift concurrency and deployment-target warnings
+- [ ] Developer ID signing, notarization, and safer automatic distribution
+- [ ] Automated build checks and polished release screenshots
 
-### Prerequisites
+Feature suggestions and bug reports can go in [Issues](https://github.com/SemiAutomat1c/Lunotch/issues); work is maintained on a best-effort basis.
 
-- **macOS 15.6 or later**
-- **Xcode 26 or later**
+## Credits and license
 
-### Installation
+**Lunotch is based on [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch).** Thank you to its authors, contributors and maintainers for the core notch, media, shelf, HUD, calendar and settings work. This repository retains the original upstream source history and copyright notices. Original Boring Notch sources and Lunotch modifications are distributed under the [GNU General Public License v3.0](LICENSE). You may inspect, modify and redistribute the source under that license's terms; downstream distributions must comply with GPL-3.0 obligations.
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/TheBoredTeam/boring.notch.git
-   cd boring.notch
-   ```
+See [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES) for upstream third-party notices. Notable upstream dependencies and ideas include [MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter), [NotchDrop](https://github.com/Lakr233/NotchDrop), and [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit). [Alcove](https://tryalcove.com/) is an independent commercial app used as a design reference; no affiliation or endorsement is implied.
 
-2. **Open the Project in Xcode**:
-   ```bash
-   open boringNotch.xcodeproj
-   ```
-
-3. **Build and Run**:
-    - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
-
-## 🤝 Contributing
-
-We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how you can join the fun!
-
-## Join our Discord Server
-
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="https://iili.io/28m3GHv.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
-
-## Star History
-<!-- BROKEN: GitHub now restricts the stargazer API for privacy reasons
-<a href="https://www.star-history.com/#TheBoredTeam/boring.notch&Timeline">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
- </picture>
-</a>
--->
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-dark.svg">
-   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-light.svg">
-   <img src="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-light.svg" alt="TheBoredTeam/boring.notch GitHub star history">
- </picture>
-
-## Support us on Ko-fi!
-<!-- <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> -->
-<a href="https://www.ko-fi.com/alexander5015" target="_blank"><img src="https://github.com/user-attachments/assets//a76175ef-7e93-475a-8b67-4922ba5964c2" alt="Support us on Ko-fi" style="height: 70px !important;width: 346px !important;" ></a>
-
-## 🎉 Acknowledgments
-
-We would like to express our gratitude to the authors and maintainers of the open-source projects that made this possible. 
-
-## Notable Projects
-- **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
-- **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
-
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
-
-### Icon credits: [@maxtron95](https://github.com/maxtron95)
-### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
-
-- **SwiftUI**: For making us look like coding wizards.
-- **You**: For being awesome and checking out **boring.notch**!
-
+Lunotch is offered **as-is**, with no warranty. If you use the original Boring Notch app, download it from [its own releases](https://github.com/TheBoredTeam/boring.notch/releases), not from this repository.

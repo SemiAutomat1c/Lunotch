@@ -22,7 +22,7 @@ extension View {
     func panGesture(direction: PanDirection, threshold: CGFloat = 4, action: @escaping (CGFloat, NSEvent.Phase) -> Void) -> some View {
         self
             .gesture(
-                DragGesture(minimumDistance: 0)
+                DragGesture(minimumDistance: threshold)
                     .onChanged { value in
                         let s = direction.signed(from: value.translation)
                         guard s > 0, s.magnitude >= threshold else { return }
@@ -58,7 +58,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         private var monitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
-            private var endTask: Task<Void, Never>?
+        private var endTask: Task<Void, Never>?
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -88,9 +88,26 @@ private struct ScrollMonitor: NSViewRepresentable {
             removeMonitor()
             monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
                 guard let self = self, event.window === view?.window else { return event }
+                guard let view else { return event }
+                // The monitor is window-wide. Avoid opening or dismissing the
+                // notch while scrolling controls elsewhere in the window.
+                guard view.bounds.contains(view.convert(event.locationInWindow, from: nil)) else {
+                    self.finishGesture()
+                    return event
+                }
                 self.handleScroll(event)
                 return event
             }
+        }
+
+        private func finishGesture() {
+            endTask?.cancel()
+            endTask = nil
+            if active {
+                action(0, .ended)
+            }
+            active = false
+            accumulated = 0
         }
 
         func removeMonitor() {
@@ -105,14 +122,10 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
 
         private func handleScroll(_ event: NSEvent) {
-            if event.phase == .ended || event.momentumPhase == .ended {
-                if active {
-                    action(accumulated.magnitude, .ended)
-                } else {
-                    action(0, .ended)
-                }
-                active = false
-                accumulated = 0
+            // Momentum is inertial scrolling after release, not a new intent
+            // to open or close the notch.
+            if event.phase == .ended || event.phase == .cancelled || event.momentumPhase != [] {
+                finishGesture()
                 return
             }
 

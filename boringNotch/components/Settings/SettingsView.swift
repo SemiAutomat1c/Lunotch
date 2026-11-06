@@ -10,19 +10,12 @@ import Defaults
 import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
-import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
-
-    let updaterController: SPUStandardUpdaterController?
-
-    init(updaterController: SPUStandardUpdaterController? = nil) {
-        self.updaterController = updaterController
-    }
 
     var body: some View {
         NavigationSplitView {
@@ -92,15 +85,7 @@ struct SettingsView: View {
                 case "Advanced":
                     Advanced()
                 case "About":
-                    if let controller = updaterController {
-                        About(updaterController: controller)
-                    } else {
-                        // Fallback with a default controller
-                        About(
-                            updaterController: SPUStandardUpdaterController(
-                                startingUpdater: false, updaterDelegate: nil,
-                                userDriverDelegate: nil))
-                    }
+                    About()
                 default:
                     GeneralSettings()
                 }
@@ -678,6 +663,9 @@ struct Media: View {
             }
             
             Section {
+                Defaults.Toggle(key: .focusedMusicPlayer) {
+                    Text("Focus music player while media is active")
+                }
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {
                     HStack {
@@ -688,7 +676,7 @@ struct Media: View {
             } header: {
                 Text("Media controls")
             }  footer: {
-                Text("Customize which controls appear in the music player. Volume expands when active.")
+                Text("The focused player gives music the full notch width while media is active. Turn it off to keep the calendar beside music. Customize the five controls below; volume expands when active.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -834,12 +822,24 @@ func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
 
 struct About: View {
     @State private var showBuildNumber: Bool = false
-    let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow
     var body: some View {
         VStack {
             Form {
                 Section {
+                    HStack(spacing: 10) {
+                        Image("logo2")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 34, height: 34)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Lunotch")
+                                .font(.headline)
+                            Text("Your Mac, a little more alive.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     HStack {
                         Text("Release name")
                         Spacer()
@@ -865,7 +865,11 @@ struct About: View {
                     Text("Version info")
                 }
 
-                UpdaterSettingsView(updater: updaterController.updater)
+                PersonalBuildUpdateNotice()
+
+                Text("Personal edition built on the open-source Boring Notch project (GPL-3.0).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
@@ -897,13 +901,6 @@ struct About: View {
                     .padding(.horizontal, 10)
             }
             .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .toolbar {
-            //            Button("Welcome window") {
-            //                openWindow(id: "onboarding")
-            //            }
-            //            .controlSize(.extraLarge)
-            CheckForUpdatesView(updater: updaterController.updater)
         }
         .navigationTitle("About")
     }

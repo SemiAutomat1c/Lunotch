@@ -190,11 +190,26 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        self.notchSize = openNotchSize
+        self.notchSize = usesFocusedMusicSize ? focusedMusicNotchSize : openNotchSize
         self.notchState = .open
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
+    }
+
+    var usesFocusedMusicSize: Bool {
+        Defaults[.focusedMusicPlayer]
+            && coordinator.currentView == .home
+            && (MusicManager.shared.isPlaying || !MusicManager.shared.isPlayerIdle)
+            && !(Defaults[.showMirror] && webcamManager.cameraAvailable && isCameraExpanded)
+    }
+
+    func refreshOpenNotchSize() {
+        guard notchState == .open else { return }
+        let targetSize = usesFocusedMusicSize ? focusedMusicNotchSize : openNotchSize
+        if notchSize != targetSize {
+            notchSize = targetSize
+        }
     }
 
     func close() {

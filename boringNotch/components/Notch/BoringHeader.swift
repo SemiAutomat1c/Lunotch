@@ -10,6 +10,7 @@ import SwiftUI
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
@@ -24,7 +25,7 @@ struct BoringHeader: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .opacity(vm.notchState == .closed ? 0 : 1)
-            .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 12 : 0)
             .zIndex(2)
 
             if vm.notchState == .open {
@@ -40,7 +41,10 @@ struct BoringHeader: View {
                 if vm.notchState == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
-                            .transition(.scale(scale: 0.8).combined(with: .opacity))
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.96)),
+                                removal: .opacity
+                            ))
                     } else {
                         if Defaults[.showMirror] {
                             Button(action: {
@@ -95,7 +99,7 @@ struct BoringHeader: View {
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
             .opacity(vm.notchState == .closed ? 0 : 1)
-            .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 12 : 0)
             .zIndex(2)
         }
         .foregroundColor(.gray)

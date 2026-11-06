@@ -1,11 +1,5 @@
-# Security Policy
+# Security
 
-## Reporting a Vulnerability
+Lunotch is an experimental personal macOS app distributed as an **unnotarized preview**. It has not undergone a security audit and should not be treated as production-ready.
 
-The Bored Team and community take security bugs in Boring Notch seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
-
-To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/TheBoredTeam/boring.notch/security/advisories/new) tab.
-
-The Bored Team will send a response indicating the next steps in handling your report. After the initial reply to your report, we will keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
-
-Report security bugs in third-party dependencies to the person or team maintaining the package or dependency.
+To privately report a vulnerability in Lunotch, use [GitHub's private vulnerability reporting](https://github.com/SemiAutomat1c/Lunotch/security/advisories/new) if enabled for this repository. If the report concerns unchanged upstream code, you can also contact the [Boring Notch maintainers](https://github.com/TheBoredTeam/boring.notch/security) through their own security process. Avoid posting exploit details or private data in public issues.
