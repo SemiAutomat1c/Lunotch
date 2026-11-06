@@ -446,9 +446,7 @@ struct NotchHomeView: View {
     }
 
     private var showingFocusedMusicPlayer: Bool {
-        focusedMusicPlayer
-            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && !shouldShowCamera
+        focusedMusicPlayer && !shouldShowCamera
     }
 
     private var mainContent: some View {
@@ -503,6 +501,30 @@ struct FocusedMusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
+        Group {
+            if musicManager.bundleIdentifier == nil && musicManager.isPlayerIdle && !musicManager.isPlaying {
+                VStack(spacing: 8) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.65))
+                    Text("Nothing Playing")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Text("Start playing media to see it here")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 136)
+            } else {
+                playerContent
+            }
+        }
+        .padding(.horizontal, 8)
+        .buttonStyle(.plain)
+    }
+
+    private var playerContent: some View {
         VStack(spacing: 6) {
             HStack(spacing: 12) {
                 AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
@@ -567,8 +589,6 @@ struct FocusedMusicPlayerView: View {
             }
             .frame(height: 36)
         }
-        .padding(.horizontal, 8)
-        .buttonStyle(.plain)
     }
 
     private var activeSlots: [MusicControlButton] {

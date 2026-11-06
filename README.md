@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="brand/lunotch-icon-1024.png" alt="Lunotch crescent and floating island icon" width="120" />
+  <img src="brand/lunotch-b2-dock.svg" alt="Lunotch B2 Lunar Droplet app icon" width="120" />
   <h1>Lunotch</h1>
   <p><strong>Your Mac, a little more alive.</strong></p>
   <p>A small, animated notch companion for macOS, built with SwiftUI.</p>
@@ -8,15 +8,17 @@
 
 > **Preview / personal project.** Lunotch is an experimental derivative of [Boring Notch](https://github.com/TheBoredTeam/boring.notch), shared under **GPL-3.0**. Its music-first layout and motion direction are inspired by public demonstrations of [Alcove](https://tryalcove.com/). Lunotch has its own branding and implementation changes and is **not affiliated with or endorsed by** the Boring Notch team or Alcove.
 
+**Version note:** The linked **v0.1.0-preview.1 DMG** is the first public preview. The current source includes a new B2 Lunar Droplet app icon and an idle-stable compact Home player, but **these updates are not included in that DMG**. Build from the current source to try them. The menu-bar symbol and in-app logo assets still use the earlier Lunotch mark.
+
 ## What it does
 
 Lunotch turns the top of your Mac screen into a lightweight space for music and quick interactions. This first preview focuses on how the notch opens, moves and responds.
 
 - **Music-first expanded view:** album art, track and artist, playing indicator, elapsed and remaining times, draggable seek bar, and five configurable media actions. The current default last action controls volume; audio-output selection is planned.
-- **Compact panel:** a focused music shell set to **450 × 180 points**, with a larger layout available for other content.
+- **Compact panel:** the focused Home music shell measures **450 × 180 points**. In the current local build, it stays compact even if playback pauses or media goes idle; when there is no player, it can show **Nothing Playing**. Settings → Media → **Use compact music player on Home** enables or disables this behavior. The larger **640 × 190-point** layout remains for other views such as the shelf and expanded camera.
 - **Responsive motion:** interruptible spring-based open/close transitions, pointer-tracking during drags, configurable hover delay, and a reduced-motion path.
 - **Boring Notch features retained in source:** media controls, file shelf and AirDrop integration, calendar and reminders views, camera mirror, battery and charging indicators, and system HUDs. These inherited flows still need broader regression testing in Lunotch.
-- **Original identity:** Lunotch app icon, wordmarks, accent colors and About information.
+- **Lunotch identity:** the new **B2 Lunar Droplet** app icon is applied to the Xcode app-icon catalog in current source. Wordmarks, menu-bar symbol and in-app logo assets retain the previous moon/orbit identity while the remaining branding is refined. See the [brand guide](docs/BRAND_IDENTITY.md) for sources and regeneration instructions.
 
 The focused player is inspired by Alcove's layout; it is **not** a pixel-perfect replica. Screenshots and live animations will be added after visual QA.
 
@@ -59,14 +61,20 @@ For a local Release build, Xcode can ad-hoc sign with `CODE_SIGN_IDENTITY=-`. Th
 
 This is a **preview**, not a stable or audited release. Compilation and signing verification have passed on the development machine. The app has launched with its embedded helper, but the new layout's physical dimensions, animations, shelf, media actions, camera, external monitors, permissions, macOS compatibility and accessibility behavior have **not** all been verified through hands-on testing. See the [local QA checklist](docs/LOCAL_TESTING.md) and [development log](docs/GOAL.md). Upstream Swift concurrency warnings and a macOS minimum-version mismatch in the bundled media adapter also remain.
 
+**Source changes after preview.1:** The idle-state switch back to the old, wider Home player was traced to playback-state conditions in the view and sizing code. Those conditions have been removed for compact Home mode; a no-media placeholder was added. The updated arm64 Debug build passed Swift parsing, whitespace checks and Xcode compilation, and was relaunched with one active Lunotch process. **Visual behavior across the idle timeout still needs manual testing.** The published DMG was not rebuilt or replaced for this fix.
+
 ## Roadmap
 
-- [x] Lunotch naming, logo, app icon, and About attribution
+- [x] Lunotch naming, initial identity, and About attribution
+- [x] B2 Lunar Droplet icon added to the source app-icon catalog (not in preview.1 DMG)
 - [x] Compact music-first view with configurable controls
+- [x] Keep compact Home mode selected through playback idle state (manual QA pending)
 - [x] Hover/drag motion refinements and reduced-motion code path
 - [x] First Apple Silicon DMG preview
 - [ ] Manual QA on hover, scrubbing, music/HUD, shelf, camera and calendar
 - [ ] Finish focused-player typography and responsive sizing against real display captures
+- [ ] Check B2 app icon in Finder and refine/integrate the menu-bar symbol and in-app marks
+- [ ] Test compact Home through pause and media idle, including the Nothing Playing placeholder
 - [ ] Add an actual output-device/AirPlay picker instead of the volume shortcut
 - [ ] Test notchless Macs, external displays, sleep/wake and multiple macOS versions
 - [ ] Accessibility and performance profiling of animations

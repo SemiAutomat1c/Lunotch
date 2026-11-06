@@ -92,6 +92,13 @@ The working name is **Lunotch**, with an original crescent/island icon, SVG mark
 - **Verification:** Swift frontend parse on the four edited Swift files, `git diff --check`, and unsigned arm64 macOS Debug `xcodebuild` passed (`** BUILD SUCCEEDED **`; log `/tmp/lunotch-compact-player-build.log`). Relaunched the rebuilt `Lunotch.app`; observed its main executable PID **63690**, XPC helper PID **63713**, and media adapter PID **63716** running at the time of the check. Saved `minimumHoverDuration` still reads **0.1 seconds**. No commit or push.
 - **Still unverified:** The running process alone does not prove the panel matches the screenshot. On-screen spacing/size, long-title truncation, reactive resizing when switching to shelf/calendar/camera, clipping, hover responsiveness, animation continuity, player controls and Reduce Motion need manual visual/interaction QA; screen capture was previously unavailable.
 
+### Prevent intermittent legacy music layout — November 7, 2026 (~01:55 PHT)
+
+- **Root cause:** The new compact `NotchHomeView` and its 450 × 180 shell were gated on `musicManager.isPlaying || !musicManager.isPlayerIdle`. When media became idle after the configured wait, the view and shell returned to the older music/calendar arrangement at 640 × 190. A prior Lunotch instance also survived a normal SIGTERM during relaunch, allowing competing app instances.
+- **Source fix:** In `NotchHomeView`, `ContentView` and `BoringViewModel`, compact mode now remains selected on Home whenever the Media setting is enabled and camera preview is closed, independent of playback/idle state. Added a **Nothing Playing** placeholder for no active player and updated the toggle copy to **Use compact music player on Home**. Existing full-size shelf and camera behavior remains intentional; turning the compact setting off restores the previous Home layout.
+- **Verification:** `git diff --check`, Swift frontend parse of the four edited Swift files and unsigned arm64 macOS Debug build passed (`** BUILD SUCCEEDED **` in `/tmp/lunotch-stable-compact-build.log`). Terminated the old instance (PID 69028; it did not exit on SIGTERM), then opened the newly built Debug app. Checked that only the new main process (PID 33134) and its media adapter (PID 33149) remained. Source/build/launch checks passed; idle-timeout switching and the on-screen appearance still require interactive confirmation.
+- **Scope:** Local source and Debug build only. The previously published `v0.1.0-preview.1` DMG is unchanged. Concurrent icon/brand edits in the worktree were preserved; no commit/push/release as part of this fix.
+
 
 ### First GitHub preview packaging — November 6, 2026
 

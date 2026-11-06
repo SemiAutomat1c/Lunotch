@@ -664,7 +664,7 @@ struct Media: View {
             
             Section {
                 Defaults.Toggle(key: .focusedMusicPlayer) {
-                    Text("Focus music player while media is active")
+                    Text("Use compact music player on Home")
                 }
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {
@@ -676,7 +676,7 @@ struct Media: View {
             } header: {
                 Text("Media controls")
             }  footer: {
-                Text("The focused player gives music the full notch width while media is active. Turn it off to keep the calendar beside music. Customize the five controls below; volume expands when active.")
+                Text("The compact player stays on Home even when media is paused or idle. Turn it off to keep the calendar beside music. The camera preview and shelf retain their full layouts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

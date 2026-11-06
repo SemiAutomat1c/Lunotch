@@ -61,7 +61,6 @@ struct ContentView: View {
     private var focusedMusicSizingIsActive: Bool {
         focusedMusicPlayer
             && coordinator.currentView == .home
-            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && !(Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded)
     }
 

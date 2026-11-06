@@ -200,7 +200,6 @@ class BoringViewModel: NSObject, ObservableObject {
     var usesFocusedMusicSize: Bool {
         Defaults[.focusedMusicPlayer]
             && coordinator.currentView == .home
-            && (MusicManager.shared.isPlaying || !MusicManager.shared.isPlayerIdle)
             && !(Defaults[.showMirror] && webcamManager.cameraAvailable && isCameraExpanded)
     }
 

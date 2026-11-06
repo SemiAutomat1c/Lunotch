@@ -1,7 +1,12 @@
 // Reproducible native macOS app icon renderer for the original Lunotch mark.
-// Run from the repository root: swift brand/render-icons.swift
+// Run from the repository root to restore legacy assets: swift brand/render-icons.swift --restore-legacy
 import AppKit
 import Foundation
+
+// This script restores the previous identity. B2 is rendered separately.
+guard CommandLine.arguments.contains("--restore-legacy") else {
+    fatalError("Legacy renderer overwrites B2 icons. Use swift brand/render-b2-icon.swift, or pass --restore-legacy intentionally.")
+}
 
 let assetRoot = URL(fileURLWithPath: "boringNotch/Assets.xcassets", isDirectory: true)
 let brandRoot = URL(fileURLWithPath: "brand", isDirectory: true)
