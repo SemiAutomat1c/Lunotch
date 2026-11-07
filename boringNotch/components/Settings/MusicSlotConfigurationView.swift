@@ -33,6 +33,9 @@ struct MusicSlotConfigurationView: View {
             }
         }
         .onAppear {
+            if musicControlSlots == MusicControlButton.legacyDefaultLayout {
+                musicControlSlots = MusicControlButton.defaultLayout
+            }
             ensureSlotCapacity(fixedSlotCount)
         }
     }

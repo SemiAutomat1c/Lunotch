@@ -125,6 +125,11 @@ struct MusicControlsView: View {
             slotToolbar
         }
         .buttonStyle(PlainButtonStyle())
+        .onAppear {
+            if slotConfig == MusicControlButton.legacyDefaultLayout {
+                slotConfig = MusicControlButton.defaultLayout
+            }
+        }
     }
 
     private var songInfoAndSlider: some View {
@@ -262,6 +267,11 @@ struct MusicControlsView: View {
             }
         case .volume:
             VolumeControlView()
+        case .audioOutput:
+            HoverButton(icon: "airplayvideo", scale: .medium) {
+                AudioOutputSettings.open()
+            }
+            .help("Sound output settings")
         case .favorite:
             FavoriteControlButton()
         case .goBackward:
@@ -522,6 +532,11 @@ struct FocusedMusicPlayerView: View {
         }
         .padding(.horizontal, 8)
         .buttonStyle(.plain)
+        .onAppear {
+            if slotConfig == MusicControlButton.legacyDefaultLayout {
+                slotConfig = MusicControlButton.defaultLayout
+            }
+        }
     }
 
     private var playerContent: some View {
@@ -617,22 +632,28 @@ struct FocusedMusicPlayerView: View {
                 musicManager.toggleFavoriteTrack()
             }
         case .previous:
-            focusedButton("backward.fill", size: 26, label: "Previous track") {
+            focusedButton("backward.fill", size: 24, label: "Previous track") {
                 musicManager.previousTrack()
             }
         case .playPause:
-            focusedButton(musicManager.isPlaying ? "pause.fill" : "play.fill", size: 29,
+            focusedButton(musicManager.isPlaying ? "pause.fill" : "play.fill", size: 31,
                           label: musicManager.isPlaying ? "Pause" : "Play") {
                 musicManager.togglePlay()
             }
         case .next:
-            focusedButton("forward.fill", size: 26, label: "Next track") {
+            focusedButton("forward.fill", size: 24, label: "Next track") {
                 musicManager.nextTrack()
             }
         case .volume:
             VolumeControlView(prominent: true)
+        case .audioOutput:
+            focusedButton("airplayvideo", size: 23, opacity: 0.6,
+                          label: "Sound output settings") {
+                AudioOutputSettings.open()
+            }
         case .shuffle:
-            focusedButton("shuffle", size: 22, label: "Shuffle") { musicManager.toggleShuffle() }
+            focusedButton("shuffle", size: 19, opacity: musicManager.isShuffled ? 1 : 0.76,
+                          label: "Shuffle") { musicManager.toggleShuffle() }
         case .repeatMode:
             focusedButton(musicManager.repeatMode == .one ? "repeat.1" : "repeat", size: 22,
                           label: "Repeat") { musicManager.toggleRepeat() }
@@ -650,11 +671,12 @@ struct FocusedMusicPlayerView: View {
     }
 
     private func focusedButton(_ symbol: String, size: CGFloat, enabled: Bool = true,
+                               opacity: Double = 1,
                                label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
-                .foregroundStyle(.white.opacity(enabled ? 1 : 0.35))
+                .foregroundStyle(.white.opacity(enabled ? opacity : 0.35))
                 .frame(maxWidth: .infinity, minHeight: 36)
                 .contentShape(Rectangle())
         }
@@ -662,6 +684,15 @@ struct FocusedMusicPlayerView: View {
         .disabled(!enabled)
         .help(label)
         .accessibilityLabel(label)
+    }
+}
+
+private enum AudioOutputSettings {
+    static func open() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.Sound-Settings.extension") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 }
 
