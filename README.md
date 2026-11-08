@@ -14,8 +14,10 @@
 
 Lunotch turns the top of your Mac screen into a lightweight space for music and quick interactions. This first preview focuses on how the notch opens, moves and responds.
 
-- **Music-first expanded view:** album art, track and artist, playing indicator, elapsed and remaining times, draggable seek bar, and five configurable media actions. The current default last action controls volume; audio-output selection is planned.
-- **Compact panel:** the focused Home music shell measures **450 × 180 points**. In the current local build, it stays compact even if playback pauses or media goes idle; when there is no player, it can show **Nothing Playing**. Settings → Media → **Use compact music player on Home** enables or disables this behavior. The larger **640 × 190-point** layout remains for other views such as the shelf and expanded camera.
+- **Music-first expanded view:** album art, track and artist, playing indicator, elapsed and remaining times, draggable seek bar, and five configurable media actions. The default actions are Shuffle / Previous / Play-Pause / Next / Sound Output; the last action opens macOS Sound settings. Favorite and Volume remain configurable; an in-notch audio-output picker is planned.
+- **Compact panel:** the focused Home music shell measures **400 × 166 points in current source** (58-point artwork), reduced from **450 × 180 points** in the published preview. It stays compact even if playback pauses or media goes idle; when there is no player, it can show **Nothing Playing**. Settings → Media → **Use compact music player on Home** enables or disables this behavior. The larger **640 × 190-point** layout remains for other views such as the shelf and expanded camera.
+- **Screenshot Studio (unreleased source):** launch native ScreenCaptureKit selection from the notch header or menu, edit an image from the clipboard or disk, or opt into previews of screenshots saved to a chosen folder. Capture shows a crosshair on the selected display and requires macOS Screen & System Audio Recording permission. The editor has crop, pen, highlight, arrows, shapes, text, opaque redaction, Undo/Redo, Fit, 50–400% zoom, copy and PNG export. Interactive capture and macOS permission behavior still need on-device testing.
+- **Work Mode (unreleased source):** an optional separate window, opened through the menu bar or notch context menu, offers 15/25/45/60-minute focus sessions, an approximate RAM overview, an explicitly selected browser-close action with confirmation, and a Markdown research note scratchpad. For this sandboxed app, notes append to `~/Library/Containers/dev.ryandeniega.lunotch/Data/Library/Application Support/Lunotch/ResearchNotes.md`, with clipboard URL import and source-reference copy. The timer continues while the window is hidden but resets if Lunotch quits. Browser closure is voluntary and can interrupt unsaved work; the memory display does not free or reserve RAM.
 - **Responsive motion:** interruptible spring-based open/close transitions, pointer-tracking during drags, configurable hover delay, and a reduced-motion path.
 - **Boring Notch features retained in source:** media controls, file shelf and AirDrop integration, calendar and reminders views, camera mirror, battery and charging indicators, and system HUDs. These inherited flows still need broader regression testing in Lunotch.
 - **Lunotch identity:** the **B2 Lunar Droplet** design is applied to the Xcode app icon, native light/dark menu-bar template symbol, in-app logos and wordmarks in current source. See the [brand guide](docs/BRAND_IDENTITY.md) for sources and regeneration instructions.
@@ -63,6 +65,8 @@ This is a **preview**, not a stable or audited release. Compilation and signing 
 
 **Preview.2 changes:** The idle-state switch back to the older, wider Home player was traced to playback-state conditions; compact Home now remains selected through idle with a no-media placeholder. The focused album art is explicitly clipped to 68 × 68 points, the 100% battery label is kept on one line, and notch/view changes have explicit native animations. The project also uses B2 identity assets in the app icon, menu bar and in-app surfaces. **These changes were build-verified, but screen captures and human interaction QA were unavailable in this session.** A restart helper can also choose an older installed copy when multiple builds share a bundle ID; if a legacy layout reappears, quit all copies and launch the intended app explicitly.
 
+**Unreleased source update (November 7–9):** The focused music panel is now **400 × 166 points** with **58 × 58-point** artwork and tighter text, timeline, icon and shell spacing. Screenshot Studio and Work Mode were added to source. After the legacy `screencapture -i` path failed on one Mac, Screenshot Studio's selection was changed to a user-initiated ScreenCaptureKit still-image capture and a custom drag overlay, with matched-display selection and a crosshair. The unsigned Apple Silicon Debug build succeeded (`/tmp/lunotch-native-selection-final-20261108-build.log`) and synthetic 1×/2× selection geometry checks passed. The **currently observed** single main instance is a different Xcode DerivedData Debug build (PID **1235** at the November 8 evening check); do not infer its build identity from the earlier PID 27836. Live Work Mode QA passed the 15-minute timer's start/pause/reset, memory display, browser-close **Cancel** (browser remained running), and Markdown note save/append. The QA-only notes were removed after verifying their exact contents. These changes are **not** in the downloadable preview.2 DMG; real display capture and permissions, editor markup, multiwindow lifecycle and compact header clipping still need manual QA.
+
 ## Roadmap
 
 - [x] Lunotch naming, initial identity, and About attribution
@@ -71,11 +75,16 @@ This is a **preview**, not a stable or audited release. Compilation and signing 
 - [x] Keep compact Home mode selected through playback idle state (manual QA pending)
 - [x] Hover/drag motion refinements and reduced-motion code path
 - [x] First Apple Silicon DMG preview
+- [x] Implement Screenshot Studio in source (interactive QA pending; unreleased)
+- [x] Implement separate-window Work Mode with focus, memory, browser break and research notes in source (interactive QA pending; unreleased)
+- [ ] Test Screenshot Studio screenshot permissions, markup, Undo/Redo, zoom and clipboard/PNG results on-device
+- [x] Test Work Mode 15-minute timer start/pause/reset, memory display, Markdown save/append and browser confirmation Cancel on-device
+- [ ] Complete Work Mode QA for other timer presets, completion beep, clipboard links and multiwindow lifecycle
 - [ ] Manual QA on hover, scrubbing, music/HUD, shelf, camera and calendar
 - [ ] Finish focused-player typography and responsive sizing against real display captures
 - [ ] Visually check B2 Finder icon, menu-bar symbol and in-app marks on-device (integrated in source)
 - [ ] Test compact Home through pause and media idle, including the Nothing Playing placeholder
-- [ ] Add an actual output-device/AirPlay picker instead of the volume shortcut
+- [ ] Add an in-notch output-device/AirPlay picker instead of opening macOS Sound settings
 - [ ] Test notchless Macs, external displays, sleep/wake and multiple macOS versions
 - [ ] Accessibility and performance profiling of animations
 - [ ] Resolve Swift concurrency and deployment-target warnings

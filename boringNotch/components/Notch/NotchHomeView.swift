@@ -513,9 +513,9 @@ struct FocusedMusicPlayerView: View {
     var body: some View {
         Group {
             if musicManager.bundleIdentifier == nil && musicManager.isPlayerIdle && !musicManager.isPlaying {
-                VStack(spacing: 8) {
+                VStack(spacing: 6) {
                     Image(systemName: "music.note")
-                        .font(.system(size: 26, weight: .medium))
+                        .font(.system(size: 24, weight: .medium))
                         .foregroundStyle(.white.opacity(0.65))
                     Text("Nothing Playing")
                         .font(.system(size: 15, weight: .semibold))
@@ -525,12 +525,15 @@ struct FocusedMusicPlayerView: View {
                         .foregroundStyle(.white.opacity(0.5))
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 136)
+                .frame(height: 120)
             } else {
                 playerContent
             }
         }
-        .padding(.horizontal, 8)
+        // The focused shell's curved sides extend inward beyond the shared
+        // outer padding. Keep the artwork, timestamps and equalizer clear of
+        // those curves without changing the shelf/header or island width.
+        .padding(.horizontal, 14)
         .buttonStyle(.plain)
         .onAppear {
             if slotConfig == MusicControlButton.legacyDefaultLayout {
@@ -540,33 +543,33 @@ struct FocusedMusicPlayerView: View {
     }
 
     private var playerContent: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 12) {
+        VStack(spacing: 4) {
+            HStack(spacing: 10) {
                 Button {
                     musicManager.openMusicApp()
                 } label: {
                     Image(nsImage: musicManager.albumArt)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 68, height: 68)
+                        .frame(width: 58, height: 58)
                         .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                        .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .strokeBorder(.white.opacity(0.09), lineWidth: 0.5)
                         }
                 }
                 .accessibilityLabel("Open music app")
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(musicManager.songTitle)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .accessibilityAddTraits(.isHeader)
                     Text(musicManager.artistName)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(.white.opacity(0.55))
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -578,15 +581,15 @@ struct FocusedMusicPlayerView: View {
                     HStack(alignment: .center, spacing: 3) {
                         ForEach(0..<4, id: \.self) { index in
                             let phase = timeline.date.timeIntervalSinceReferenceDate
-                            let animatedHeight = 8 + 17 * abs(sin(phase * (2.6 + Double(index) * 0.35) + Double(index) * 1.4))
+                            let animatedHeight = 7 + 15 * abs(sin(phase * (2.6 + Double(index) * 0.35) + Double(index) * 1.4))
                             Capsule()
                                 .fill(.white.opacity(musicManager.isPlaying ? 0.75 : 0.3))
                                 .frame(width: 3, height: musicManager.isPlaying && !reduceMotion
-                                       ? animatedHeight : [11.0, 19.0, 25.0, 14.0][index])
+                                       ? animatedHeight : [10.0, 17.0, 22.0, 12.0][index])
                         }
                     }
                 }
-                .frame(width: 24, height: 30)
+                .frame(width: 22, height: 26)
                 .accessibilityLabel(musicManager.isPlaying ? "Playing" : "Paused")
             }
 
@@ -606,7 +609,7 @@ struct FocusedMusicPlayerView: View {
                     inlineTimeLabels: true
                 )
             }
-            .frame(height: 20)
+            .frame(height: 18)
 
             HStack(spacing: 0) {
                 ForEach(Array(activeSlots.enumerated()), id: \.offset) { _, slot in
@@ -632,27 +635,27 @@ struct FocusedMusicPlayerView: View {
                 musicManager.toggleFavoriteTrack()
             }
         case .previous:
-            focusedButton("backward.fill", size: 24, label: "Previous track") {
+            focusedButton("backward.fill", size: 22, label: "Previous track") {
                 musicManager.previousTrack()
             }
         case .playPause:
-            focusedButton(musicManager.isPlaying ? "pause.fill" : "play.fill", size: 31,
+            focusedButton(musicManager.isPlaying ? "pause.fill" : "play.fill", size: 28,
                           label: musicManager.isPlaying ? "Pause" : "Play") {
                 musicManager.togglePlay()
             }
         case .next:
-            focusedButton("forward.fill", size: 24, label: "Next track") {
+            focusedButton("forward.fill", size: 22, label: "Next track") {
                 musicManager.nextTrack()
             }
         case .volume:
             VolumeControlView(prominent: true)
         case .audioOutput:
-            focusedButton("airplayvideo", size: 23, opacity: 0.6,
+            focusedButton("airplayvideo", size: 21, opacity: 0.6,
                           label: "Sound output settings") {
                 AudioOutputSettings.open()
             }
         case .shuffle:
-            focusedButton("shuffle", size: 19, opacity: musicManager.isShuffled ? 1 : 0.76,
+            focusedButton("shuffle", size: 18, opacity: musicManager.isShuffled ? 1 : 0.76,
                           label: "Shuffle") { musicManager.toggleShuffle() }
         case .repeatMode:
             focusedButton(musicManager.repeatMode == .one ? "repeat.1" : "repeat", size: 22,

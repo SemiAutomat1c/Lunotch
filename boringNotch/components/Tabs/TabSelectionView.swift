@@ -20,12 +20,15 @@ let tabs = [
 ]
 
 struct TabSelectionView: View {
+    var compact = false
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
+                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view,
+                              horizontalPadding: compact ? 0 : 15,
+                              compactWidth: compact ? 22 : nil) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
                         }

@@ -91,9 +91,11 @@ class SettingsWindowController: NSWindowController {
     
     private func relinquishFocus() {
         window?.orderOut(nil)
-        
-        // Set app back to accessory mode immediately
-        NSApp.setActivationPolicy(.accessory)
+
+        // Keep other auxiliary windows focusable if Settings closes first.
+        if !ScreenshotStudio.shared.isEditorVisible && !WorkMode.shared.isVisible {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 }
 

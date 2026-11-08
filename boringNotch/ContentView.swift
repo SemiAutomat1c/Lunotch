@@ -115,21 +115,21 @@ struct ContentView: View {
                 let mainLayout = NotchLayout()
                     .frame(
                         width: vm.notchState == .open && vm.usesFocusedMusicSize
-                            ? max(0, focusedMusicNotchSize.width - 2 * (
-                                (Defaults[.cornerRadiusScaling]
-                                    ? cornerRadiusInsets.opened.top : cornerRadiusInsets.opened.bottom) + 12
-                            ))
+                            ? max(0, focusedMusicNotchSize.width - 2 * focusedMusicHorizontalInset)
                             : nil,
                         alignment: .top
                     )
                     .padding(
                         .horizontal,
                         vm.notchState == .open
-                        ? Defaults[.cornerRadiusScaling]
-                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
+                        ? (vm.usesFocusedMusicSize
+                            ? focusedMusicHorizontalInset
+                            : (Defaults[.cornerRadiusScaling]
+                                ? cornerRadiusInsets.opened.top : cornerRadiusInsets.opened.bottom))
                         : cornerRadiusInsets.closed.bottom
                     )
-                    .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    .padding(.horizontal, vm.notchState == .open && !vm.usesFocusedMusicSize ? 12 : 0)
+                    .padding(.bottom, vm.notchState == .open ? (vm.usesFocusedMusicSize ? 8 : 12) : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
                     .overlay {
@@ -222,6 +222,28 @@ struct ContentView: View {
                             }
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+                        if Defaults[.showMirror] {
+                            Button(vm.isCameraExpanded ? "Close Camera Preview" : "Open Camera Preview") {
+                                vm.toggleCameraPreview()
+                            }
+                        }
+                        Menu("Screenshot Studio") {
+                            Button("Capture Selection…") {
+                                ScreenshotStudio.shared.captureSelection()
+                            }
+                            Button("Edit Image from Clipboard") {
+                                ScreenshotStudio.shared.editClipboard()
+                            }
+                            Button("Open Image…") {
+                                ScreenshotStudio.shared.openImage()
+                            }
+                            Button("Choose Screenshot Folder…") {
+                                ScreenshotStudio.shared.chooseScreenshotFolder()
+                            }
+                        }
+                        Button("Open Work Mode…") {
+                            WorkMode.shared.show()
+                        }
                         //                    Button("Edit") { // Doesnt work....
                         //                        let dn = DynamicNotch(content: EditPanelView())
                         //                        dn.toggle()
@@ -286,7 +308,7 @@ struct ContentView: View {
     @ViewBuilder
     func NotchLayout() -> some View {
         VStack(alignment: .leading) {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: vm.usesFocusedMusicSize ? 4 : 8) {
                 if coordinator.helloAnimationRunning {
                     Spacer()
                     HelloAnimation(onFinish: {

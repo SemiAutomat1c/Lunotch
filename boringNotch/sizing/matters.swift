@@ -14,8 +14,10 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
-// The Alcove-inspired music view uses a smaller island than the shelf/calendar.
-let focusedMusicNotchSize: CGSize = .init(width: 450, height: 180)
+// The music-only island is compact; shelf/calendar/camera retain their full size.
+let focusedMusicNotchSize: CGSize = .init(width: 400, height: 166)
+// One shared edge inset for the compact player, timeline, controls, and header.
+let focusedMusicHorizontalInset: CGFloat = 22
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 

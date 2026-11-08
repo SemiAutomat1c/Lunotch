@@ -19,6 +19,27 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("Lunotch", image: "LunotchMenuIcon", isInserted: $showMenuBarIcon) {
+            Button("Capture Selection…") {
+                ScreenshotStudio.shared.captureSelection()
+            }
+            Button("Edit Image from Clipboard") {
+                ScreenshotStudio.shared.editClipboard()
+            }
+            Button("Open Image in Screenshot Studio…") {
+                ScreenshotStudio.shared.openImage()
+            }
+            Button("Choose Screenshot Folder…") {
+                ScreenshotStudio.shared.chooseScreenshotFolder()
+            }
+            Toggle("Preview Saved Screenshots", isOn: Binding(
+                get: { ScreenshotStudio.shared.autoPreview },
+                set: { ScreenshotStudio.shared.autoPreview = $0 }
+            ))
+            Divider()
+            Button("Open Work Mode…") {
+                WorkMode.shared.show()
+            }
+            Divider()
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -61,6 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        ScreenshotStudio.shared.stop()
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
@@ -268,6 +290,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ScreenshotStudio.shared.start()
 
         NotificationCenter.default.addObserver(
             self,

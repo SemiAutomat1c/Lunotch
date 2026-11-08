@@ -14,15 +14,49 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+
+    // The camera cutout occupies the center of the compact header. Leave
+    // curved-edge clearance for Home, Shelf and one-tap screenshot capture.
+    private var compactWingWidth: CGFloat {
+        max(0, (focusedMusicNotchSize.width - 2 * focusedMusicHorizontalInset
+            - vm.closedNotchSize.width) / 2)
+    }
+
+    private var compactEdgeInset: CGFloat {
+        // Two 22pt tabs, the 22pt capture action and two 2pt gaps need 70pt.
+        vm.usesFocusedMusicSize ? min(14, max(0, compactWingWidth - 70)) : 0
+    }
+
+    // Allow room for a three-digit battery percentage (including the % sign)
+    // before displaying an additional shortcut in the compact right wing.
+    private var canFitHeaderShortcut: Bool {
+        guard vm.usesFocusedMusicSize else { return true }
+        let batterySpace: CGFloat = Defaults[.showBatteryIndicator]
+            ? (Defaults[.showBatteryPercentage] ? 62 : 22)
+            : 0
+        let shortcutSpace: CGFloat = 26 + (Defaults[.showBatteryIndicator] ? 2 : 0)
+        return compactWingWidth - compactEdgeInset >= batterySpace + shortcutSpace
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            HStack {
+            HStack(spacing: vm.usesFocusedMusicSize ? 2 : 6) {
                 if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
-                    TabSelectionView()
-                } else if vm.notchState == .open {
-                    EmptyView()
+                    TabSelectionView(compact: vm.usesFocusedMusicSize)
                 }
+                Button {
+                    ScreenshotStudio.shared.captureSelection()
+                } label: {
+                    Image(systemName: "camera.viewfinder")
+                        .font(.system(size: vm.usesFocusedMusicSize ? 12 : 14, weight: .medium))
+                        .frame(width: vm.usesFocusedMusicSize ? 22 : 28, height: 26)
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Capture screenshot selection")
+                .help("Capture a screenshot to edit in Screenshot Studio")
             }
+            .padding(.leading, compactEdgeInset)
             .frame(maxWidth: .infinity, alignment: .leading)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 12 : 0)
@@ -46,7 +80,7 @@ struct BoringHeader: View {
                                 removal: .opacity
                             ))
                     } else {
-                        if Defaults[.showMirror] {
+                        if Defaults[.showMirror] && canFitHeaderShortcut {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
@@ -62,11 +96,11 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        // Keep the compact island's right side within the space
-                        // beside the physical notch. Settings remain in the menu
-                        // bar and the notch context menu when the camera is shown.
+                        // The compact island keeps secondary shortcuts out of
+                        // the battery's space beside the physical camera notch.
                         if Defaults[.settingsIconInNotch]
-                            && (!vm.usesFocusedMusicSize || !Defaults[.showMirror]) {
+                            && (!vm.usesFocusedMusicSize || !Defaults[.showMirror])
+                            && canFitHeaderShortcut {
                             Button(action: {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
@@ -87,7 +121,7 @@ struct BoringHeader: View {
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
-                                batteryWidth: vm.usesFocusedMusicSize ? 24 : 30,
+                                batteryWidth: vm.usesFocusedMusicSize ? 22 : 30,
                                 isCharging: batteryModel.isCharging,
                                 isInLowPowerMode: batteryModel.isInLowPowerMode,
                                 isPluggedIn: batteryModel.isPluggedIn,
@@ -101,6 +135,7 @@ struct BoringHeader: View {
                 }
             }
             .font(.system(.headline, design: .rounded))
+            .padding(.trailing, compactEdgeInset)
             .frame(maxWidth: .infinity, alignment: .trailing)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: reduceMotion ? 0 : vm.notchState == .closed ? 12 : 0)

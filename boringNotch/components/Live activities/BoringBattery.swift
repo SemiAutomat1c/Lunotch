@@ -39,6 +39,14 @@ struct BatteryView: View {
         }
     }
 
+    private var fillHeight: CGFloat {
+        min(8, max(5, batteryWidth * 0.28))
+    }
+
+    private var fillWidth: CGFloat {
+        max(0, batteryWidth - 6) * min(1, max(0, CGFloat(levelBattery) / 100))
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
 
@@ -51,11 +59,11 @@ struct BatteryView: View {
                     width: batteryWidth + 1
                 )
 
-            RoundedRectangle(cornerRadius: 2.5)
+            RoundedRectangle(cornerRadius: min(2.5, fillHeight / 3))
                 .fill(batteryColor)
                 .frame(
-                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
-                    height: (batteryWidth - 2.75) - 18
+                    width: fillWidth,
+                    height: fillHeight
                 )
                 .padding(.leading, 2)
 
