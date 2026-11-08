@@ -62,14 +62,12 @@ struct WelcomeView: View {
                 .padding(.top)
             }
             
-            Image("theboringteam")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 22)
+            Text("Made for macOS")
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 .padding()
                 .padding(.bottom, 36)
-                .blendMode(.overlay)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .ignoresSafeArea()
