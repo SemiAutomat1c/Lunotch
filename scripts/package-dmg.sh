@@ -5,7 +5,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 app_path="${1:?Pass the built Lunotch.app path as the first argument}"
 out_dir="${2:-$repo_root/dist}"
-label="${3:-v0.1.0-preview.2}"
+label="${3:-v0.1.0-preview.3}"
 
 if [[ "$(basename "$app_path")" != 'Lunotch.app' || ! -x "$app_path/Contents/MacOS/Lunotch" ]]; then
   echo 'Expected a built Lunotch.app with an executable' >&2
